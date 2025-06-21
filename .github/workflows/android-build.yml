@@ -28,6 +28,16 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2
 
@@ -35,7 +45,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Run unit tests
-      run: ./gradlew test --stacktrace
+      run: ./gradlew test --stacktrace --no-daemon
 
   lint:
     name: Run Lint
@@ -51,11 +61,21 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Run lint
-      run: ./gradlew lintDebug --stacktrace
+      run: ./gradlew lintDebug --stacktrace --no-daemon
 
     - name: Upload lint results
       uses: actions/upload-artifact@v4
@@ -79,11 +99,21 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Build debug APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: ./gradlew assembleDebug --stacktrace --no-daemon
 
     - name: Upload debug APK
       uses: actions/upload-artifact@v4
@@ -93,15 +123,12 @@ jobs:
 
     - name: Build release APK
       if: github.event_name == 'release'
-      run: ./gradlew assembleRelease --stacktrace
+      run: ./gradlew assembleRelease --stacktrace --no-daemon
 
     - name: Upload release APK to GitHub Release
       if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: app/build/outputs/apk/release/app-release.apk
-        asset_name: app-release.apk
-        asset_content_type: application/vnd.android.package-archive 
+        files: app/build/outputs/apk/release/app-release.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
